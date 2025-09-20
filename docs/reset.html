@@ -1,1 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Zethra • Reset Password</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{--accent:#7C3AED;--bg:#fff;--card:#F3F4F6;--text:#111827;--mid:#6B7280;--border:#E5E7EB}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{min-height:100vh;display:grid;place-items:center;padding:16px}
+    .card{width:100%;max-width:480px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
+    h1{font-size:18px;margin:0 0 10px;font-weight:800}
+    label{font-weight:600;display:block;margin-top:10px}
+    input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:#fff;color:var(--text)}
+    button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-weight:800;cursor:pointer}
+    button:disabled{background:#C4B5FD;cursor:default}
+    .msg{color:var(--mid);margin-top:8px}
+    a{color:var(--accent);font-weight:700;text-decoration:none}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="wrap"><div class="card">
+    <h1>Reset your password</h1>
+    <div id="step-session" style="display:none"><p class="msg">Preparing reset…</p></div>
+    <div id="step-form" style="display:none">
+      <label>New password</label>
+      <input id="pw1" type="password" placeholder="Enter new password" />
+      <label>Confirm new password</label>
+      <input id="pw2" type="password" placeholder="Confirm new password" />
+      <button id="btn">Update password</button>
+      <p class="msg" id="msg"></p>
+    </div>
+    <div id="step-done" style="display:none">
+      <p>Password updated. You can return to the app and log in.</p>
+      <p class="msg"><a id="back">Back</a></p>
+    </div>
+  </div></div>
 
+  <script>
+    const SUPABASE_URL = "https://zrfjvlbactriorxzysam.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyZmp2bGJhY3RyaW9yeHp5c2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyNTcwMTgsImV4cCI6MjA3MzgzMzAxOH0.BoyVPEll2XVr6SRQocjbbQX-qNaXe8FvCRwbw2pUqxA";
+    const ROOT = location.origin + location.pathname.replace(/\/docs\/reset\.html$/, "");
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    const stepSession = document.getElementById("step-session");
+    const stepForm = document.getElementById("step-form");
+    const stepDone = document.getElementById("step-done");
+    const msg = document.getElementById("msg");
+    const btn = document.getElementById("btn");
+    const back = document.getElementById("back");
+
+    function show(id){
+      stepSession.style.display = id==="session"?"":"none";
+      stepForm.style.display    = id==="form"   ?"":"none";
+      stepDone.style.display    = id==="done"   ?"":"none";
+    }
+    function parseHash(){
+      const h=(location.hash||"").replace(/^#/,"");
+      return Object.fromEntries(new URLSearchParams(h));
+    }
+
+    (async () => {
+      show("session");
+      const p = parseHash();
+      if (!p.access_token || !p.refresh_token) { msg.textContent = "Invalid or expired link."; show("form"); return; }
+      const { error } = await sb.auth.setSession({ access_token: p.access_token, refresh_token: p.refresh_token });
+      if (error) { msg.textContent = "Could not start reset session: " + error.message; show("form"); return; }
+      show("form");
+    })();
+
+    btn.addEventListener("click", async () => {
+      const p1 = document.getElementById("pw1").value;
+      const p2 = document.getElementById("pw2").value;
+      if (!p1 || p1 !== p2) { msg.textContent = "Passwords must match."; return; }
+      btn.disabled = true; msg.textContent = "Updating…";
+      const { error } = await sb.auth.updateUser({ password: p1 });
+      btn.disabled = false;
+      if (error) { msg.textContent = error.message; return; }
+      show("done");
+    });
+
+    back.addEventListener("click", () => { location.href = ROOT + "/docs/index.html"; });
+  </script>
+</body>
+</html>
