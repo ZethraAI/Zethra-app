@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Zethra Chat</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #flat-chat { height: 100vh; width: 100%; }
+  </style>
+</head>
+<body>
+  <div id="flat-chat"></div>
+
+  <script type="module">
+    // helper to read ?uid=... from the URL
+    const params = new URLSearchParams(window.location.search);
+    const uid = params.get("uid") || "guest";
+
+    // load the Voiceflow widget bundle
+    const script = document.createElement("script");
+    script.type = "module";
+    script.src = "https://cdn.voiceflow.com/widget/bundle.mjs";
+    script.onload = () => {
+      // minimal required config: projectID, runtime url, versionID
+      // add render.mode 'embedded' to mount inside #flat-chat
+      window.voiceflow.chat.load({
+        verify: { projectID: "YOUR_PROJECT_ID" },            // ← replace
+        url: "https://general-runtime.voiceflow.com",
+        versionID: "production",
+        render: { mode: "embedded", target: document.getElementById("flat-chat") },
+        // optional user context so transcripts group per user
+        user: { id: uid }
+      });
+    };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>
