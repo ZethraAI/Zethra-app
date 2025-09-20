@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Zethra • Create Account</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{--accent:#7C3AED;--bg:#fff;--card:#F3F4F6;--text:#111827;--mid:#6B7280;--border:#E5E7EB}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{min-height:100vh;display:grid;place-items:center;padding:16px}
+    .card{width:100%;max-width:480px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
+    h1{font-size:18px;margin:0 0 10px;font-weight:800}
+    label{font-weight:600;display:block;margin-top:10px}
+    input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:#fff;color:var(--text)}
+    button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-weight:800;cursor:pointer}
+    button:disabled{background:#C4B5FD;cursor:default}
+    .msg{color:var(--mid);margin-top:8px}
+    a{color:var(--accent);font-weight:700;text-decoration:none}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="wrap"><div class="card">
+    <h1>Create account</h1>
+    <label>Email</label>
+    <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
+    <label>Password</label>
+    <input id="pw" type="password" placeholder="••••••••" autocomplete="new-password" />
+    <button id="btn">Create account</button>
+    <p class="msg" id="msg"></p>
+    <p class="msg"><a href="./index.html">Back</a></p>
+  </div></div>
+
+  <script>
+    const SUPABASE_URL = "https://zrfjvlbactriorxzysam.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyZmp2bGJhY3RyaW9yeHp5c2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyNTcwMTgsImV4cCI6MjA3MzgzMzAxOH0.BoyVPEll2XVr6SRQocjbbQX-qNaXe8FvCRwbw2pUqxA";
+    const ROOT = location.origin + location.pathname.replace(/\/docs\/create_account\.html$/, "");
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    const email = document.getElementById("email");
+    const pw = document.getElementById("pw");
+    const btn = document.getElementById("btn");
+    const msg = document.getElementById("msg");
+
+    btn.addEventListener("click", async () => {
+      const e = email.value.trim();
+      const p = pw.value;
+      if (!e || !p) { msg.textContent = "Enter email and password."; return; }
+      btn.disabled = true; msg.textContent = "Creating…";
+      const { error } = await sb.auth.signUp({
+        email: e,
+        password: p,
+        // If you want email confirmation flow, uncomment:
+        // options: { emailRedirectTo: ROOT + "/docs/confirm.html" },
+      });
+      btn.disabled = false;
+      if (error) { msg.textContent = error.message; return; }
+      msg.textContent = "Account created. You can now log in from the app or web.";
+    });
+  </script>
+</body>
+</html>
